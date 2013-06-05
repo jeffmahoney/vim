@@ -6,6 +6,8 @@ import difflib
 import sys
 import os
 
+reject_window = None
+source_window = None
 reject_buffer = None
 source_buffer = None
 
@@ -40,7 +42,7 @@ for w in vim.windows:
 reject_text = None
 source_text = None
 
-if reject_window:
+if reject_window and reject_buffer:
     grab = False
     reject_text = []
     for line in reject_buffer:
