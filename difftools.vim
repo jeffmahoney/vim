@@ -1,4 +1,3 @@
-" usage: Place cursor in source window as a starting position and call :diff
 function!Diff()
 python <<EOF
 import vim
@@ -70,8 +69,6 @@ EOF
 endfunction
 cabbrev diff call Diff()
 
-" usage: place cursor anywhere in patch chunk. the @@ line will be replaced
-" with an updated one.
 function!ChunkSize()
 python <<EOF
 import vim
@@ -88,7 +85,9 @@ for n in range(w.cursor[0] - 1, 0, -1):
 
 old = 0
 new = 0
-for n in range(row + 1, len(b)):
+for n in range(row + 1, len(b) - 1):
+    if re.match("^\-\-\- [a-z]", b[n]):
+        break
     if re.match("^@@", b[n]):
         break
     if re.match("^\-", b[n]):
