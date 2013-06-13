@@ -88,17 +88,15 @@ for n in range(w.cursor[0] - 1, 0, -1):
 old = 0
 new = 0
 for n in range(row + 1, len(b) - 1):
-    if re.match("^\-\-\- [a-z]", b[n]):
-        break
-    if re.match("^@@", b[n]):
-        break
     if re.match("^\-", b[n]):
         old += 1
     elif re.match("^\+", b[n]):
         new += 1
-    else:
+    elif re.match("^[ \t]", b[n]):
         old +=1
         new += 1
+    else:
+        break;
 
 m = re.match("^@@ \-([0-9]+),([0-9]+) \+([0-9]+),([0-9]+) @@(.*)", b[row])
 if m:
