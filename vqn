@@ -1,0 +1,43 @@
+#!/bin/sh
+
+SRC=
+REJ=
+if [ "$#" -ge 1 ]; then
+	case "$1" in
+	*.rej)
+		SRC="$(dirname "$1")/$(basename "$1" .rej)"
+		REJ=$1
+		;;
+	*)
+		SRC="$1"
+		REJ="$1.rej"
+		;;
+	esac
+	if [ ! -e "$SRC" -o ! -e "$REJ" ]; then
+		SRC=
+		REJ=
+	fi
+fi
+
+NEXT=$(quilt next 2> /dev/null)
+if [ "$?" -ne 0 ]; then
+	exit 1
+fi
+
+DIR=.
+
+while [ ! -d "$DIR/patches" ]; do
+	DIR="../$DIR"
+	if [ "$(realpath "$DIR")" = "/" ]; then
+		break;
+	fi
+done
+
+if [ ! -d "$DIR/patches" ]; then
+	echo "Can't locate patches/ directory." 1>&2
+	exit 1
+fi
+
+NEXT=${NEXT##patches/}
+
+exec vi -o $SRC $REJ $DIR/patches/${NEXT}
