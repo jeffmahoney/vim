@@ -1,4 +1,4 @@
-function!Diff()
+function!Diff(mode)
 python <<EOF
 import vim
 import re
@@ -6,7 +6,7 @@ import difflib
 import sys
 import os
 
-def diff():
+def diff(use_source=True):
     reject_window = None
     source_window = None
     reject_buffer = None
@@ -48,85 +48,16 @@ def diff():
 	reject_text = []
 	for line in reject_buffer:
 	    if re.match("^\*\*\* ([0-9]+)", line):
-		grab = True
+		if grab:
+		    break
+		grab = use_source
 		continue
 	    if re.match("^\-\-\- ([0-9]+)", line):
-		break
-
-	    if grab:
-		reject_text.append(line[2:])
-    else:
-	print "No matching buffer for %s.rej" % source_name
-
-    if source_window and reject_text:
-	row = source_window.cursor[0] - 1
-	source_text = source_buffer[row:row+len(reject_text)]
-
-	diff = difflib.unified_diff(source_text, reject_text,
-				    "a/%s" % source_name,
-				    "b/%s" % source_name, lineterm='\n')
-	for line in diff:
-	    print line
-	print "ok"
-    else:
-	    print "WTF"
-
-diff()
-EOF
-endfunction
-function!Applied()
-python <<EOF
-import vim
-import re
-import difflib
-import sys
-import os
-
-def applied():
-    reject_window = None
-    source_window = None
-    reject_buffer = None
-    source_buffer = None
-
-    m = re.match("^(.*)\.rej$", vim.current.buffer.name)
-    if m:
-	reject_buffer = vim.current.buffer
-	reject_name = reject_buffer.name
-	source_name = m.group(1)
-    else:
-	source_buffer = vim.current.buffer
-	reject_name = "%s.rej" % source_buffer.name
-	source_name = source_buffer.name
-
-    if reject_buffer is None:
-	for b in vim.buffers:
-	    if b.name == reject_name:
-		reject_buffer = b
-
-    if source_buffer is None:
-	for b in vim.buffers:
-	    if b.name == source_name:
-		source_buffer = b
-
-    source_name = source_name.replace("%s/" % os.getcwd(), "")
-
-    for w in vim.windows:
-	if w.buffer == reject_buffer:
-	    reject_window = w
-	if w.buffer == source_buffer:
-	    source_window = w
-
-    reject_text = None
-    source_text = None
-
-    if reject_window and reject_buffer:
-	grab = False
-	reject_text = []
-	for line in reject_buffer:
-	    if re.match("^\-\-\- ([0-9]+,\s*[0-9]+)", line):
-		grab = True
+		if grab:
+		    break
+		grab = not use_source
 		continue
-	    if grab and re.match("^\*\*\*\*", line):
+	    if grab and re.match("^\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*", line):
 		break
 
 	    if grab:
@@ -147,11 +78,18 @@ def applied():
     else:
 	    print "WTF"
 
-applied()
+mode = vim.eval("a:mode")
+
+if mode == "diff":
+    diff(True)
+elif mode == "applied":
+    diff(False)
+else:
+    print "Invalid argument %s" % mode
 EOF
 endfunction
-cabbrev diff <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call Diff()' : 'diff')<CR>
-cabbrev applied <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call Applied()' : 'applied')<CR>
+cabbrev diff <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call Diff("diff")' : 'diff')<CR>
+cabbrev applied <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call Diff("applied")' : 'applied')<CR>
 
 function!ChunkSize()
 python <<EOF
