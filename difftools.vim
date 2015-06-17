@@ -12,6 +12,11 @@ def diff(use_source=True):
     reject_buffer = None
     source_buffer = None
 
+    if use_source:
+	skip_char = '+'
+    else:
+	skip_char = '-'
+
     m = re.match("^(.*)\.rej$", vim.current.buffer.name)
     if m:
 	reject_buffer = vim.current.buffer
@@ -47,21 +52,35 @@ def diff(use_source=True):
 	grab = False
 	reject_text = []
 	for line in reject_buffer:
+	    # Context source
 	    if re.match("^\*\*\* ([0-9]+)", line):
 		if grab:
 		    break
 		grab = use_source
+		skip = 2
 		continue
+
+	    # Context destination
 	    if re.match("^\-\-\- ([0-9]+)", line):
 		if grab:
 		    break
 		grab = not use_source
+		skip = 2
+		continue
+
+	    # Unified
+	    if re.match("^@@ \-", line):
+		if grab:
+		    break
+		grab = True
+		skip = 1
 		continue
 	    if grab and re.match("^\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*", line):
 		break
 
 	    if grab:
-		reject_text.append(line[2:])
+		if line[0] != skip_char:
+		    reject_text.append(line[skip:])
     else:
 	print "No matching buffer for %s.rej" % source_name
 
@@ -76,7 +95,10 @@ def diff(use_source=True):
 	    print line
 	print "ok"
     else:
-	    print "WTF"
+	    if not source_window:
+		print "ERROR: No source window"
+	    else:
+		print "ERROR: No reject text"
 
 mode = vim.eval("a:mode")
 
