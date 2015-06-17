@@ -110,8 +110,8 @@ else:
     print "Invalid argument %s" % mode
 EOF
 endfunction
-cabbrev diff <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call Diff("diff")' : 'diff')<CR>
-cabbrev applied <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call Diff("applied")' : 'applied')<CR>
+cabbrev Diff <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call Diff("diff")' : 'diff')<CR>
+cabbrev Applied <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call Diff("applied")' : 'applied')<CR>
 
 function!ChunkSize()
 python <<EOF
@@ -155,5 +155,5 @@ def chunksize():
 chunksize()
 EOF
 endfunction
-cabbrev size <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call ChunkSize()' : 'size')<CR>
+cabbrev Size <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'call ChunkSize()' : 'size')<CR>
 
